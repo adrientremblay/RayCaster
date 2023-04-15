@@ -43,6 +43,8 @@ int main() {
 
     // Initializing important vectors
     Eigen::Vector2f pos = Eigen::Vector2f(22.0f, 12.0f);
+    Eigen::Vector2f dir = Eigen::Vector2f(-1.0f, 0.0f);
+    Eigen::Vector2f screen = Eigen::Vector2f(0.0f, 0.66f);
 
     sf::Clock clock;
     while (window.isOpen()) {
@@ -55,7 +57,11 @@ int main() {
                 window.close();
         }
 
-        bool x = 0;
+        // Casting rays
+        for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
+            double screen_pos = 2 * (x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
+            Eigen::Vector2f ray = dir + (screen * screen_pos);
+        }
 
         window.clear(sf::Color::Black);
 
