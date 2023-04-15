@@ -1,5 +1,6 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include <Eigen/Dense>
 
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
@@ -36,10 +37,18 @@ int map[MAP_WIDTH][MAP_HEIGHT] =
 
 
 int main() {
+    // Setting up window
     sf::RenderWindow window(sf::VideoMode(800, 600), "Ray-Caster");
     window.setFramerateLimit(60);
 
+    // Initializing important vectors
+    Eigen::Vector2f pos = Eigen::Vector2f(22.0f, 12.0f);
+
+    sf::Clock clock;
     while (window.isOpen()) {
+        sf::Time deltaTime = clock.restart();
+        float deltaTimeSeconds = deltaTime.asSeconds();
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)

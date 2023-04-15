@@ -13,6 +13,10 @@ set(SOURCES
         src/main.cpp
         )
 
+# Add Eigen library
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 # Set the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
