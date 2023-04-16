@@ -63,6 +63,12 @@ int main() {
                     pos += dir*player.speed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::S) {
                     pos -= dir*player.speed * deltaTimeSeconds;
+                } else if (event.key.code == sf::Keyboard::A) {
+                    Eigen::Rotation2D<float> rot(-M_PI / 2.0f);
+                    pos -= rot*dir*player.speed * deltaTimeSeconds;
+                } else if (event.key.code == sf::Keyboard::D) {
+                    Eigen::Rotation2D<float> rot(M_PI / 2.0f);
+                    pos -= rot*dir*player.speed * deltaTimeSeconds;
                 }
             }
         }
