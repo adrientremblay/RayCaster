@@ -35,6 +35,9 @@ int map[MAP_WIDTH][MAP_HEIGHT] =
         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
     };
 
+struct Player {
+    double speed = 0.5f;
+} player;
 
 int main() {
     // Setting up window
@@ -53,8 +56,13 @@ int main() {
 
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed) {
                 window.close();
+            } else if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::W) {
+                    pos += dir*player.speed;
+                }
+            }
         }
 
         // Clearing screen
