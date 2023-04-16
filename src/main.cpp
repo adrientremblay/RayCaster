@@ -36,7 +36,7 @@ int map[MAP_WIDTH][MAP_HEIGHT] =
     };
 
 struct Player {
-    double speed = 0.5f;
+    double speed = 15.0f;
 } player;
 
 int main() {
@@ -60,7 +60,9 @@ int main() {
                 window.close();
             } else if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::W) {
-                    pos += dir*player.speed;
+                    pos += dir*player.speed * deltaTimeSeconds;
+                } else if (event.key.code == sf::Keyboard::S) {
+                    pos -= dir*player.speed * deltaTimeSeconds;
                 }
             }
         }
