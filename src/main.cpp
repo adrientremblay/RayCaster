@@ -46,6 +46,7 @@ int main() {
 
     // Initializing important vectors
     Eigen::Vector2f pos = Eigen::Vector2f(22.0f, 12.0f);
+    const Eigen::Vector2f original_dir = Eigen::Vector2f(-1.0f, 0.0f);
     Eigen::Vector2f dir = Eigen::Vector2f(-1.0f, 0.0f);
     Eigen::Vector2f screen = Eigen::Vector2f(0.0f, 0.66f);
 
@@ -57,22 +58,9 @@ int main() {
         // Camera rotation with mouse
         sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
         int mouse_x = mouse_pos.x;
-
-        double screen_pos = 2 * (mouse_x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
-        /*
-        double a = (screen*screen_pos).norm();
-        double b = dir.norm();
-        double theta = sqrt(a*a + b*b) / 100;
-        */
-
-        if (abs(screen_pos) > 0.5f) {
-            double theta = M_PI / 256;
-            if (screen_pos > 0)
-                theta *= -1;
-
-            Eigen::Rotation2D<float> rot(theta);
-            dir = rot * dir;
-        }
+        double theta = 2 * M_PI * (mouse_x / double(SCREEN_WIDTH));
+        Eigen::Rotation2D<float> rot(theta);
+        dir = rot * original_dir;
 
         sf::Event event;
         while (window.pollEvent(event)) {
