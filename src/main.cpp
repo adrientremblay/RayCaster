@@ -70,6 +70,19 @@ int main() {
                     Eigen::Rotation2D<float> rot(M_PI / 2.0f);
                     pos -= rot*dir*player.speed * deltaTimeSeconds;
                 }
+            } else if (event.type == sf::Event::MouseMoved) {
+                sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
+                int mouse_x = mouse_pos.x;
+
+                double screen_pos = 2 * (mouse_x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
+                double a = (screen*screen_pos).norm();
+                double b = dir.norm();
+                double theta = sqrt(a*a + b*b) / 10;
+                if (screen_pos > 0)
+                    theta *= -1;
+
+                Eigen::Rotation2D<float> rot(theta);
+                dir = rot * dir;
             }
         }
 
@@ -140,10 +153,10 @@ int main() {
 
             // Calculating line height
             int line_height = SCREEN_HEIGHT / wall_distance;
-            int draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;
+            int draw_start = SCREEN_HEIGHT/2 -line_height/2;
             if (draw_start < 0)
                 draw_start = 0;
-            int draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
+            int draw_end = SCREEN_HEIGHT/2 + line_height/2;
             if (draw_end >= SCREEN_HEIGHT)
                 draw_end = SCREEN_HEIGHT - 1;
 
@@ -162,11 +175,11 @@ int main() {
                 line_color.b = line_color.b / 2;
             }
 
+            // Drawing line
             sf::Vertex line[] = {
                 sf::Vertex(sf::Vector2f(x, draw_start), line_color),
                 sf::Vertex(sf::Vector2f(x, draw_end), line_color)
             };
-
             window.draw(line, 2, sf::Lines);
         }
 
