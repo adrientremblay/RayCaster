@@ -54,6 +54,26 @@ int main() {
         sf::Time deltaTime = clock.restart();
         float deltaTimeSeconds = deltaTime.asSeconds();
 
+        // Camera rotation with mouse
+        sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
+        int mouse_x = mouse_pos.x;
+
+        double screen_pos = 2 * (mouse_x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
+        /*
+        double a = (screen*screen_pos).norm();
+        double b = dir.norm();
+        double theta = sqrt(a*a + b*b) / 100;
+        */
+
+        if (abs(screen_pos) > 0.5f) {
+            double theta = M_PI / 256;
+            if (screen_pos > 0)
+                theta *= -1;
+
+            Eigen::Rotation2D<float> rot(theta);
+            dir = rot * dir;
+        }
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -70,19 +90,6 @@ int main() {
                     Eigen::Rotation2D<float> rot(M_PI / 2.0f);
                     pos -= rot*dir*player.speed * deltaTimeSeconds;
                 }
-            } else if (event.type == sf::Event::MouseMoved) {
-                sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-                int mouse_x = mouse_pos.x;
-
-                double screen_pos = 2 * (mouse_x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
-                double a = (screen*screen_pos).norm();
-                double b = dir.norm();
-                double theta = sqrt(a*a + b*b) / 10;
-                if (screen_pos > 0)
-                    theta *= -1;
-
-                Eigen::Rotation2D<float> rot(theta);
-                dir = rot * dir;
             }
         }
 
