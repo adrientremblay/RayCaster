@@ -4,8 +4,8 @@
 
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 1440
+#define SCREEN_HEIGHT 900
 #define IMAGE_TEXTURE_SIZE 512
 #define WALL_TEXTURE_SIZE 128
 
@@ -43,7 +43,7 @@ struct Player {
 
 int main() {
     // Setting up window
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Ray-Caster");
+    sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ray-Caster");
     window.setFramerateLimit(60);
 
     // Initializing important vectors
@@ -144,7 +144,7 @@ int main() {
             int side;
 
             // Doing the DDA algorithm
-            while (hit == 0) {
+            while (!hit) {
                 if (side_dist_x < side_dist_y) {
                     side_dist_x += dist_next_x;
                     map_x += step_x;
@@ -162,13 +162,10 @@ int main() {
             // Calculate distance to the screen
             // todo: actually understand the derivation of this https://lodev.org/cgtutor/raycasting.html#Untextured_Raycaster_
             double wall_distance;
-            double euclidian_distance;
             if (side == 0) {
                 wall_distance = side_dist_x - dist_next_x;
-                euclidian_distance = side_dist_x;
             } else {
                 wall_distance = side_dist_y - dist_next_y;
-                euclidian_distance = side_dist_y;
             }
 
             // Calculating line height
