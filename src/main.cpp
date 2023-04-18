@@ -199,9 +199,9 @@ int main() {
             // calculate where the wall was hit //todo: try to understand this???
             float wall_x;
             if (side == 0) {
-                wall_x = ray.y() + (float)wall_distance * ray.y();
+                wall_x = pos.y() + (float)wall_distance * ray.y();
             } else {
-                wall_x = ray.x() + (float)wall_distance * ray.x();
+                wall_x = pos.x() + (float)wall_distance * ray.x();
             }
             wall_x -= floor(wall_x);
 
