@@ -6,8 +6,8 @@
 #define MAP_HEIGHT 24
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 480
-#define TEXTURE_WIDTH 64
-#define TEXTURE_HEIGHT 64
+#define IMAGE_TEXTURE_SIZE 512
+#define WALL_TEXTURE_SIZE 128
 
 int map[MAP_WIDTH][MAP_HEIGHT] =
 {
@@ -55,6 +55,14 @@ int main() {
 
     // Lines vector
     sf::VertexArray lines(sf::Lines, SCREEN_WIDTH);
+
+    // Texture for walls
+    sf::Texture texture;
+    if (!texture.loadFromFile("../res/walls.png")) {
+        fprintf(stderr, "Cannot open texture!\n");
+        return EXIT_FAILURE;
+    }
+    sf::RenderStates state(&texture);
 
     sf::Clock clock;
     while (window.isOpen()) {
@@ -175,22 +183,36 @@ int main() {
 
             // Texture stuff
             int tex_num = map[map_x][map_y] - 1; // so we can use 0 texture
+            sf::Vector2i texture_coords(
+                tex_num * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
+                tex_num * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
+            );
 
-            double wall_x = (pos + dir*euclidian_distance).x();
+            float wall_x = (pos + dir*euclidian_distance).x();
             wall_x -= floor(wall_x);
 
-            //int tex_x =
-;
-
-            // Determining line color
-            sf::Color line_color;
-            switch (map[map_x][map_y]) {
-                case 1:  line_color = sf::Color::Red;  break; //red
-                case 2:  line_color = sf::Color::Green;  break; //green
-                case 3:  line_color = sf::Color::Blue;   break; //blue
-                case 4:  line_color = sf::Color::White;  break; //white
-                default: line_color = sf::Color::Yellow; break; //yellow
+            // calculate where the wall was hit //todo: try to understand this???
+            /*
+            float wall_x;
+            if (horizontal) {
+                wall_x = rayPos.y + perpWallDist * rayDir.y;
+            } else {
+                wall_x = rayPos.x + perpWallDist * rayDir.x;
             }
+            wall_x -= floor(wall_x);
+            */
+
+            // get x coordinate on the wall texture
+            int tex_x = int(wall_x * float(WALL_TEXTURE_SIZE));
+
+            // flip texture if we see it on the other side of us, this prevents a mirrored effect for the texture
+            if ((side == 0 && ray.x() <= 0) || (!side == 0 && ray.y() >= 0)) {
+                tex_x = WALL_TEXTURE_SIZE - tex_x - 1;
+            }
+            texture_coords.x += tex_x;
+
+            // illusion of shadows by making horizontal walls darker
+            sf::Color line_color = sf::Color::White;
             if (side == 1) {
                 line_color.r = line_color.r / 2;
                 line_color.g = line_color.g / 2;
@@ -199,16 +221,18 @@ int main() {
 
             lines.append(sf::Vertex(
                     sf::Vector2f(x, draw_start),
-                    line_color
+                    line_color,
+                    sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1)
             ));
             lines.append(sf::Vertex(
                     sf::Vector2f(x, draw_end),
-                    line_color
+                    line_color,
+                sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + WALL_TEXTURE_SIZE - 1))
             ));
 ;
         }
 
-        window.draw(lines);
+        window.draw(lines, state);
 
         window.display();
     }
