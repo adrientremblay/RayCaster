@@ -174,11 +174,15 @@ int main() {
             // Calculating line height
             int line_height = SCREEN_HEIGHT / wall_distance;
             int draw_start = SCREEN_HEIGHT/2 -line_height/2;
+            /*
             if (draw_start < 0)
                 draw_start = 0;
+                */
             int draw_end = SCREEN_HEIGHT/2 + line_height/2;
+            /*
             if (draw_end >= SCREEN_HEIGHT)
                 draw_end = SCREEN_HEIGHT - 1;
+                */
 
             // Texture stuff
             int tex_num = map[map_x][map_y] - 1; // so we can use 0 texture
