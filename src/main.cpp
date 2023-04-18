@@ -72,7 +72,10 @@ int main() {
                 window.close();
             } else if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::W) {
-                    pos += dir*player.speed * deltaTimeSeconds;
+                    Eigen::Vector2f potential_new_loc = pos + dir*player.speed * deltaTimeSeconds;
+                    if (map[int(potential_new_loc.x())][int(potential_new_loc.y())] == 0) {
+                        pos += dir*player.speed * deltaTimeSeconds;
+                    }
                 } else if (event.key.code == sf::Keyboard::S) {
                     pos -= dir*player.speed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::A) {
