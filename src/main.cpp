@@ -71,19 +71,22 @@ int main() {
             if (event.type == sf::Event::Closed) {
                 window.close();
             } else if (event.type == sf::Event::KeyPressed) {
+                Eigen::Vector2f potential_new_loc;
+
                 if (event.key.code == sf::Keyboard::W) {
-                    Eigen::Vector2f potential_new_loc = pos + dir*player.speed * deltaTimeSeconds;
-                    if (map[int(potential_new_loc.x())][int(potential_new_loc.y())] == 0) {
-                        pos += dir*player.speed * deltaTimeSeconds;
-                    }
+                    potential_new_loc = pos + dir*player.speed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::S) {
-                    pos -= dir*player.speed * deltaTimeSeconds;
+                    potential_new_loc = pos - dir*player.speed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::A) {
-                    Eigen::Rotation2D<float> rot(-M_PI / 2.0f);
-                    pos -= rot*dir*player.speed * deltaTimeSeconds;
-                } else if (event.key.code == sf::Keyboard::D) {
                     Eigen::Rotation2D<float> rot(M_PI / 2.0f);
-                    pos -= rot*dir*player.speed * deltaTimeSeconds;
+                    potential_new_loc = pos + rot*dir*player.speed*deltaTimeSeconds;
+                } else if (event.key.code == sf::Keyboard::D) {
+                    Eigen::Rotation2D<float> rot(-M_PI / 2.0f);
+                    potential_new_loc = pos + rot*dir*player.speed*deltaTimeSeconds;
+                }
+
+                if (map[int(potential_new_loc.x())][int(potential_new_loc.y())] == 0) {
+                    pos = potential_new_loc;
                 }
             }
         }
