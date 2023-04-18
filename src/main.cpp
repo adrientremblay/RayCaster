@@ -53,6 +53,9 @@ int main() {
     const Eigen::Vector2f original_screen = Eigen::Vector2f(0.0f, 0.66f);
     Eigen::Vector2f screen = Eigen::Vector2f(0.0f, 0.66f);
 
+    // Lines vector
+    sf::VertexArray lines(sf::Lines, SCREEN_WIDTH);
+
     sf::Clock clock;
     while (window.isOpen()) {
         sf::Time deltaTime = clock.restart();
@@ -95,6 +98,7 @@ int main() {
         window.clear(sf::Color::Black);
 
         // Casting rays
+        lines.resize(0);
         for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
             double screen_pos = 2 * (x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
             Eigen::Vector2f ray = dir + (screen * screen_pos);
@@ -151,10 +155,14 @@ int main() {
             // Calculate distance to the screen
             // todo: actually understand the derivation of this https://lodev.org/cgtutor/raycasting.html#Untextured_Raycaster_
             double wall_distance;
-            if (side == 0)
-                wall_distance = (side_dist_x - dist_next_x);
-            else
-                wall_distance = (side_dist_y - dist_next_y);
+            double euclidian_distance;
+            if (side == 0) {
+                wall_distance = side_dist_x - dist_next_x;
+                euclidian_distance = side_dist_x;
+            } else {
+                wall_distance = side_dist_y - dist_next_y;
+                euclidian_distance = side_dist_y;
+            }
 
             // Calculating line height
             int line_height = SCREEN_HEIGHT / wall_distance;
@@ -164,6 +172,15 @@ int main() {
             int draw_end = SCREEN_HEIGHT/2 + line_height/2;
             if (draw_end >= SCREEN_HEIGHT)
                 draw_end = SCREEN_HEIGHT - 1;
+
+            // Texture stuff
+            int tex_num = map[map_x][map_y] - 1; // so we can use 0 texture
+
+            double wall_x = (pos + dir*euclidian_distance).x();
+            wall_x -= floor(wall_x);
+
+            //int tex_x =
+;
 
             // Determining line color
             sf::Color line_color;
@@ -180,13 +197,18 @@ int main() {
                 line_color.b = line_color.b / 2;
             }
 
-            // Drawing line
-            sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(x, draw_start), line_color),
-                sf::Vertex(sf::Vector2f(x, draw_end), line_color)
-            };
-            window.draw(line, 2, sf::Lines);
+            lines.append(sf::Vertex(
+                    sf::Vector2f(x, draw_start),
+                    line_color
+            ));
+            lines.append(sf::Vertex(
+                    sf::Vector2f(x, draw_end),
+                    line_color
+            ));
+;
         }
+
+        window.draw(lines);
 
         window.display();
     }
