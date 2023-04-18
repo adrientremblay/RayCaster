@@ -118,7 +118,6 @@ int main() {
             // Distance to the next and y along the ray
             double dist_next_x = ray.x() == 0 ? 1e30 : abs(1 / ray.x());
             double dist_next_y = ray.y() == 0 ? 1e30 : abs(1 / ray.y());
-            double perWallDist;
 
             // Distance to next x and to next y in the ray direction from the starting pos
             double side_dist_x;
@@ -188,19 +187,19 @@ int main() {
                 tex_num * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
             );
 
+            /*
             float wall_x = (pos + dir*euclidian_distance).x();
             wall_x -= floor(wall_x);
+            */
 
             // calculate where the wall was hit //todo: try to understand this???
-            /*
             float wall_x;
-            if (horizontal) {
-                wall_x = rayPos.y + perpWallDist * rayDir.y;
+            if (side == 0) {
+                wall_x = ray.y() + (float)wall_distance * ray.y();
             } else {
-                wall_x = rayPos.x + perpWallDist * rayDir.x;
+                wall_x = ray.x() + (float)wall_distance * ray.x();
             }
             wall_x -= floor(wall_x);
-            */
 
             // get x coordinate on the wall texture
             int tex_x = int(wall_x * float(WALL_TEXTURE_SIZE));
@@ -222,12 +221,12 @@ int main() {
             lines.append(sf::Vertex(
                     sf::Vector2f(x, draw_start),
                     line_color,
-                    sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1)
+                    sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1.0f)
             ));
             lines.append(sf::Vertex(
                     sf::Vector2f(x, draw_end),
                     line_color,
-                sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + WALL_TEXTURE_SIZE - 1))
+                sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
             ));
 ;
         }
