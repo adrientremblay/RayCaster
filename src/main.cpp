@@ -38,7 +38,7 @@ int map[MAP_WIDTH][MAP_HEIGHT] =
 };
 
 struct Player {
-    double speed = 15.0f;
+    double movSpeed = 15.0f;
 } player;
 
 int main() {
@@ -61,7 +61,7 @@ int main() {
         // Camera rotation with mouse
         sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
         int mouse_x = mouse_pos.x;
-        double theta = 2 * M_PI * (mouse_x / double(SCREEN_WIDTH));
+        double theta = M_PI * (mouse_x / double(SCREEN_WIDTH));
         Eigen::Rotation2D<float> rot(theta);
         dir = rot * original_dir;
         screen = rot * original_screen;
@@ -74,15 +74,15 @@ int main() {
                 Eigen::Vector2f potential_new_loc;
 
                 if (event.key.code == sf::Keyboard::W) {
-                    potential_new_loc = pos + dir*player.speed * deltaTimeSeconds;
+                    potential_new_loc = pos + dir * player.movSpeed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::S) {
-                    potential_new_loc = pos - dir*player.speed * deltaTimeSeconds;
+                    potential_new_loc = pos - dir * player.movSpeed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::A) {
                     Eigen::Rotation2D<float> rot(M_PI / 2.0f);
-                    potential_new_loc = pos + rot*dir*player.speed*deltaTimeSeconds;
+                    potential_new_loc = pos + rot * dir * player.movSpeed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::D) {
                     Eigen::Rotation2D<float> rot(-M_PI / 2.0f);
-                    potential_new_loc = pos + rot*dir*player.speed*deltaTimeSeconds;
+                    potential_new_loc = pos + rot * dir * player.movSpeed * deltaTimeSeconds;
                 }
 
                 if (map[int(potential_new_loc.x())][int(potential_new_loc.y())] == 0) {
