@@ -39,21 +39,148 @@ int map[MAP_WIDTH][MAP_HEIGHT] =
 
 struct Player {
     double movSpeed = 15.0f;
+    Eigen::Vector2f pos = Eigen::Vector2f(22.0f, 12.0f);
+    const Eigen::Vector2f original_dir = Eigen::Vector2f(-1.0f, 0.0f);
+    Eigen::Vector2f dir = Eigen::Vector2f(-1.0f, 0.0f);
+    const Eigen::Vector2f original_screen = Eigen::Vector2f(0.0f, 0.66f);
+    Eigen::Vector2f screen = Eigen::Vector2f(0.0f, 0.66f);
 } player;
+
+void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates renderStates) {
+    lines.resize(0);
+    for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
+        double screen_pos = 2 * (x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
+        Eigen::Vector2f ray = player.dir + (player.screen * screen_pos);
+
+        // Actual x and y of the cell the player is in
+        int map_x = int(player.pos.x());
+        int map_y = int(player.pos.y());
+
+        // Distance to the next and y along the ray
+        double dist_next_x = ray.x() == 0 ? 1e30 : abs(1 / ray.x());
+        double dist_next_y = ray.y() == 0 ? 1e30 : abs(1 / ray.y());
+
+        // Distance to next x and to next y in the ray direction from the starting pos
+        double side_dist_x;
+        double side_dist_y;
+        // If we are increasing or decreasing the x and y values
+        int step_x;
+        int step_y;
+        if (ray.x() < 0) {
+            step_x = -1;
+            side_dist_x = (player.pos.x() - map_x) * dist_next_x;
+        } else {
+            step_x = 1;
+            side_dist_x = (1.0f + map_x - player.pos.x()) * dist_next_x;
+        }
+        if (ray.y() < 0) {
+            step_y = -1;
+            side_dist_y = (player.pos.y() - map_y) * dist_next_y;
+        } else {
+            step_y = 1;
+            side_dist_y = (1.0f + map_y - player.pos.y()) * dist_next_y;
+        }
+
+        bool hit = false;
+        int side;
+
+        // Doing the DDA algorithm
+        while (!hit) {
+            if (side_dist_x < side_dist_y) {
+                side_dist_x += dist_next_x;
+                map_x += step_x;
+                side = 0;
+            } else {
+                side_dist_y += dist_next_y;
+                map_y += step_y;
+                side = 1;
+            }
+
+            if (map[map_x][map_y] > 0)
+                hit = true;
+        }
+
+        // Calculate distance to the screen
+        // todo: actually understand the derivation of this https://lodev.org/cgtutor/raycasting.html#Untextured_Raycaster_
+        double wall_distance;
+        if (side == 0) {
+            wall_distance = side_dist_x - dist_next_x;
+        } else {
+            wall_distance = side_dist_y - dist_next_y;
+        }
+
+        // Calculating line height
+        int line_height = SCREEN_HEIGHT / wall_distance;
+        int draw_start = SCREEN_HEIGHT/2 -line_height/2;
+        /*
+        if (draw_start < 0)
+            draw_start = 0;
+            */
+        int draw_end = SCREEN_HEIGHT/2 + line_height/2;
+        /*
+        if (draw_end >= SCREEN_HEIGHT)
+            draw_end = SCREEN_HEIGHT - 1;
+            */
+
+        // Texture stuff
+        int tex_num = map[map_x][map_y] - 1; // so we can use 0 texture
+        sf::Vector2i texture_coords(
+                tex_num * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
+                tex_num * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
+        );
+
+        /*
+        float wall_x = (pos + dir*euclidian_distance).x();
+        wall_x -= floor(wall_x);
+        */
+
+        // calculate where the wall was hit //todo: try to understand this???
+        float wall_x;
+        if (side == 0) {
+            wall_x = player.pos.y() + (float)wall_distance * ray.y();
+        } else {
+            wall_x = player.pos.x() + (float)wall_distance * ray.x();
+        }
+        wall_x -= floor(wall_x);
+
+        // get x coordinate on the wall texture
+        int tex_x = int(wall_x * float(WALL_TEXTURE_SIZE));
+
+        // flip texture if we see it on the other side of us, this prevents a mirrored effect for the texture
+        if ((side == 0 && ray.x() <= 0) || (!side == 0 && ray.y() >= 0)) {
+            tex_x = WALL_TEXTURE_SIZE - tex_x - 1;
+        }
+        texture_coords.x += tex_x;
+
+        // illusion of shadows by making horizontal walls darker
+        sf::Color line_color = sf::Color::White;
+        if (side == 1) {
+            line_color.r = line_color.r / 2;
+            line_color.g = line_color.g / 2;
+            line_color.b = line_color.b / 2;
+        }
+
+        lines.append(sf::Vertex(
+                sf::Vector2f(x, draw_start),
+                line_color,
+                sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1.0f)
+        ));
+        lines.append(sf::Vertex(
+                sf::Vector2f(x, draw_end),
+                line_color,
+                sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
+        ));
+    }
+
+    window.draw(lines, renderStates);
+}
 
 int main() {
     // Setting up window
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ray-Caster");
     window.setFramerateLimit(60);
 
-    // Initializing important vectors
-    Eigen::Vector2f pos = Eigen::Vector2f(22.0f, 12.0f);
-    const Eigen::Vector2f original_dir = Eigen::Vector2f(-1.0f, 0.0f);
-    Eigen::Vector2f dir = Eigen::Vector2f(-1.0f, 0.0f);
-    const Eigen::Vector2f original_screen = Eigen::Vector2f(0.0f, 0.66f);
-    Eigen::Vector2f screen = Eigen::Vector2f(0.0f, 0.66f);
-
-    // Lines vector
+    // Render lines
     sf::VertexArray lines(sf::Lines, SCREEN_WIDTH);
 
     // Texture for walls
@@ -62,7 +189,7 @@ int main() {
         fprintf(stderr, "Cannot open texture!\n");
         return EXIT_FAILURE;
     }
-    sf::RenderStates state(&texture);
+    sf::RenderStates renderStates(&texture);
 
     sf::Clock clock;
     while (window.isOpen()) {
@@ -74,8 +201,8 @@ int main() {
         int mouse_x = mouse_pos.x;
         double theta = M_PI * (mouse_x / double(SCREEN_WIDTH));
         Eigen::Rotation2D<float> rot(theta);
-        dir = rot * original_dir;
-        screen = rot * original_screen;
+        player.dir = rot * player.original_dir;
+        player.screen = rot * player.original_screen;
 
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -85,19 +212,19 @@ int main() {
                 Eigen::Vector2f potential_new_loc;
 
                 if (event.key.code == sf::Keyboard::W) {
-                    potential_new_loc = pos + dir * player.movSpeed * deltaTimeSeconds;
+                    potential_new_loc = player.pos + player.dir * player.movSpeed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::S) {
-                    potential_new_loc = pos - dir * player.movSpeed * deltaTimeSeconds;
+                    potential_new_loc = player.pos - player.dir * player.movSpeed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::A) {
                     Eigen::Rotation2D<float> rot(M_PI / 2.0f);
-                    potential_new_loc = pos + rot * dir * player.movSpeed * deltaTimeSeconds;
+                    potential_new_loc = player.pos + rot * player.dir * player.movSpeed * deltaTimeSeconds;
                 } else if (event.key.code == sf::Keyboard::D) {
                     Eigen::Rotation2D<float> rot(-M_PI / 2.0f);
-                    potential_new_loc = pos + rot * dir * player.movSpeed * deltaTimeSeconds;
+                    potential_new_loc = player.pos + rot * player.dir * player.movSpeed * deltaTimeSeconds;
                 }
 
                 if (map[int(potential_new_loc.x())][int(potential_new_loc.y())] == 0) {
-                    pos = potential_new_loc;
+                    player.pos = potential_new_loc;
                 }
             }
         }
@@ -106,133 +233,7 @@ int main() {
         window.clear(sf::Color::Black);
 
         // Casting rays
-        lines.resize(0);
-        for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
-            double screen_pos = 2 * (x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
-            Eigen::Vector2f ray = dir + (screen * screen_pos);
-
-            // Actual x and y of the cell the player is in
-            int map_x = int(pos.x());
-            int map_y = int(pos.y());
-
-            // Distance to the next and y along the ray
-            double dist_next_x = ray.x() == 0 ? 1e30 : abs(1 / ray.x());
-            double dist_next_y = ray.y() == 0 ? 1e30 : abs(1 / ray.y());
-
-            // Distance to next x and to next y in the ray direction from the starting pos
-            double side_dist_x;
-            double side_dist_y;
-            // If we are increasing or decreasing the x and y values
-            int step_x;
-            int step_y;
-            if (ray.x() < 0) {
-                step_x = -1;
-                side_dist_x = (pos.x() - map_x) * dist_next_x;
-            } else {
-                step_x = 1;
-                side_dist_x = (1.0f + map_x - pos.x()) * dist_next_x;
-            }
-            if (ray.y() < 0) {
-                step_y = -1;
-                side_dist_y = (pos.y() - map_y) * dist_next_y;
-            } else {
-                step_y = 1;
-                side_dist_y = (1.0f + map_y - pos.y()) * dist_next_y;
-            }
-
-            bool hit = false;
-            int side;
-
-            // Doing the DDA algorithm
-            while (!hit) {
-                if (side_dist_x < side_dist_y) {
-                    side_dist_x += dist_next_x;
-                    map_x += step_x;
-                    side = 0;
-                } else {
-                    side_dist_y += dist_next_y;
-                    map_y += step_y;
-                    side = 1;
-                }
-
-                if (map[map_x][map_y] > 0)
-                    hit = true;
-            }
-
-            // Calculate distance to the screen
-            // todo: actually understand the derivation of this https://lodev.org/cgtutor/raycasting.html#Untextured_Raycaster_
-            double wall_distance;
-            if (side == 0) {
-                wall_distance = side_dist_x - dist_next_x;
-            } else {
-                wall_distance = side_dist_y - dist_next_y;
-            }
-
-            // Calculating line height
-            int line_height = SCREEN_HEIGHT / wall_distance;
-            int draw_start = SCREEN_HEIGHT/2 -line_height/2;
-            /*
-            if (draw_start < 0)
-                draw_start = 0;
-                */
-            int draw_end = SCREEN_HEIGHT/2 + line_height/2;
-            /*
-            if (draw_end >= SCREEN_HEIGHT)
-                draw_end = SCREEN_HEIGHT - 1;
-                */
-
-            // Texture stuff
-            int tex_num = map[map_x][map_y] - 1; // so we can use 0 texture
-            sf::Vector2i texture_coords(
-                tex_num * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
-                tex_num * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
-            );
-
-            /*
-            float wall_x = (pos + dir*euclidian_distance).x();
-            wall_x -= floor(wall_x);
-            */
-
-            // calculate where the wall was hit //todo: try to understand this???
-            float wall_x;
-            if (side == 0) {
-                wall_x = pos.y() + (float)wall_distance * ray.y();
-            } else {
-                wall_x = pos.x() + (float)wall_distance * ray.x();
-            }
-            wall_x -= floor(wall_x);
-
-            // get x coordinate on the wall texture
-            int tex_x = int(wall_x * float(WALL_TEXTURE_SIZE));
-
-            // flip texture if we see it on the other side of us, this prevents a mirrored effect for the texture
-            if ((side == 0 && ray.x() <= 0) || (!side == 0 && ray.y() >= 0)) {
-                tex_x = WALL_TEXTURE_SIZE - tex_x - 1;
-            }
-            texture_coords.x += tex_x;
-
-            // illusion of shadows by making horizontal walls darker
-            sf::Color line_color = sf::Color::White;
-            if (side == 1) {
-                line_color.r = line_color.r / 2;
-                line_color.g = line_color.g / 2;
-                line_color.b = line_color.b / 2;
-            }
-
-            lines.append(sf::Vertex(
-                    sf::Vector2f(x, draw_start),
-                    line_color,
-                    sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1.0f)
-            ));
-            lines.append(sf::Vertex(
-                    sf::Vector2f(x, draw_end),
-                    line_color,
-                sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
-            ));
-;
-        }
-
-        window.draw(lines, state);
+        rayCast(window, lines, renderStates);
 
         window.display();
     }
