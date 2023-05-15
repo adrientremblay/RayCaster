@@ -175,6 +175,10 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     window.draw(lines, renderStates);
 }
 
+void drawMiniMap(sf::RenderWindow& window) {
+
+}
+
 int main() {
     // Setting up window
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ray-Caster");
@@ -191,18 +195,24 @@ int main() {
     }
     sf::RenderStates renderStates(&texture);
 
+    sf::Vector2i center_screen(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+    sf::Mouse::setPosition(center_screen, window);
+
     sf::Clock clock;
     while (window.isOpen()) {
         sf::Time deltaTime = clock.restart();
         float deltaTimeSeconds = deltaTime.asSeconds();
 
         // Camera rotation with mouse
-        sf::Vector2i mouse_pos = sf::Mouse::getPosition(window);
-        int mouse_x = mouse_pos.x;
-        double theta = M_PI * (mouse_x / double(SCREEN_WIDTH));
-        Eigen::Rotation2D<float> rot(theta);
-        player.dir = rot * player.original_dir;
-        player.screen = rot * player.original_screen;
+        if (window.hasFocus()) {
+            sf::Vector2i rel_mouse_pos = center_screen - sf::Mouse::getPosition(window);
+            int mouse_x = rel_mouse_pos.x;
+            double theta = (mouse_x / double(SCREEN_WIDTH)) * M_PI;
+            Eigen::Rotation2D<float> rot(theta);
+            player.dir = rot * player.dir;
+            player.screen = rot * player.screen;
+            sf::Mouse::setPosition(center_screen, window);
+        }
 
         sf::Event event;
         while (window.pollEvent(event)) {
