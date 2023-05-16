@@ -236,6 +236,10 @@ int main() {
                 if (map[int(potential_new_loc.x())][int(potential_new_loc.y())] == 0) {
                     player.pos = potential_new_loc;
                 }
+            } else if (event.type == sf::Event::GainedFocus) {
+                window.setMouseCursorVisible(false);
+            } else if (event.type == sf::Event::LostFocus) {
+                window.setMouseCursorVisible(true);
             }
         }
 
