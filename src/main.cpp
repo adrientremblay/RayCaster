@@ -50,70 +50,32 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     lines.resize(0);
 
     // FLOOR CASTING
+    float near = 0.01f;
+    float far = 0.1f;
+
+    Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
+    Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
+    Eigen::Vector2f frustum_bottom_left = player.pos + ((player.dir - player.screen) * near);
+    Eigen::Vector2f frustum_bottom_right = player.pos + ((player.dir + player.screen) * near);
+
     for (int y = 0 ; y < SCREEN_HEIGHT / 2 ; y++) {
+        float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2.0f); // between 0 and 1
+
+        Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) * normalized_y + frustum_bottom_left;
+        Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) * normalized_y + frustum_bottom_right;
+
         sf::Color color = sf::Color::White;
-
-        color.r = color.r * (y / SCREEN_HEIGHT + 1);
-        color.g = color.g * (y / SCREEN_HEIGHT + 1);
-        color.b = color.b * (y / SCREEN_HEIGHT + 1);
-
-        sf::Vector2i texture_coords(
-                0 * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
-                0 * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
-        );
-
 
         lines.append(sf::Vertex(
                 sf::Vector2f(0, y),
                 color,
-                sf::Vector2f(WALL_TEXTURE_SIZE, (y / float(SCREEN_HEIGHT) * WALL_TEXTURE_SIZE))
+                sf::Vector2f(scanline_left.x(), scanline_left.y())
         ));
         lines.append(sf::Vertex(
                 sf::Vector2f(SCREEN_WIDTH, y),
                 color,
-                sf::Vector2f(2*WALL_TEXTURE_SIZE, (y / float(SCREEN_HEIGHT) * WALL_TEXTURE_SIZE))
+                sf::Vector2f(scanline_right.x(), scanline_right.y())
         ));
-        /*
-        Eigen::Vector2f floor_left = player.dir - player.screen;
-        Eigen::Vector2f floor_right = player.dir + player.screen;
-
-       int z_dir = y - SCREEN_HEIGHT / 2;
-
-       float camera_z_pos = 0.5f * SCREEN_HEIGHT;
-
-       float row_distance = camera_z_pos / z_dir;
-
-       Eigen::Vector2f floor_step = row_distance * (floor_right - floor_left) / SCREEN_WIDTH;
-
-       Eigen::Vector2f floor = player.pos + row_distance * floor_left;
-
-       for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
-           int cell_x = (int) floor.x();
-           int cell_y = (int) floor.y();
-
-           int tx = (int)(WALL_TEXTURE_SIZE * (floor.x() - cell_x)) & (WALL_TEXTURE_SIZE - 1);
-           int ty = (int)(WALL_TEXTURE_SIZE * (floor.y() - cell_y)) & (WALL_TEXTURE_SIZE - 1);
-
-           floor += floor_step;
-
-           int floorTexture = 3;
-           int ceilingTexture = 6;
-           sf::Color color;
-
-           lines.append(sf::Vertex(
-                   sf::Vector2f(0, y),
-                   color,
-                   sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1.0f)
-           ));
-           lines.append(sf::Vertex(
-                   sf::Vector2f(SCREEN_WIDTH, y),
-                   color,
-                   sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
-           ));
-       }
-         */
-
-
     }
 
     // WALL CASTING
@@ -244,12 +206,19 @@ int main() {
     sf::VertexArray lines(sf::Lines, SCREEN_WIDTH);
 
     // Texture for walls
-    sf::Texture texture;
-    if (!texture.loadFromFile("../res/walls.png")) {
+    sf::Texture walls_texture;
+    if (!walls_texture.loadFromFile("../res/walls.png")) {
         fprintf(stderr, "Cannot open texture!\n");
         return EXIT_FAILURE;
     }
-    sf::RenderStates renderStates(&texture);
+    sf::RenderStates renderStates(&walls_texture);
+
+    // Texture for floor
+    sf::Texture floor_texture;
+    if (!floor_texture.loadFromFile("../res/floor.jpg")) {
+        fprintf(stderr, "Cannot open texture!\n");
+        return EXIT_FAILURE;
+    }
 
     sf::Vector2i center_screen(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
     sf::Mouse::setPosition(center_screen, window);
