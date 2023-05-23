@@ -48,6 +48,68 @@ struct Player {
 
 void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates renderStates) {
     lines.resize(0);
+
+    // FLOOR CASTING
+    for (int y = 0 ; y < SCREEN_HEIGHT ; y++) {
+        sf::Color color = sf::Color::White;
+        sf::Vector2i texture_coords(
+                0 * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
+                0 * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
+        );
+        lines.append(sf::Vertex(
+                sf::Vector2f(0, y),
+                color,
+                sf::Vector2f((float)0, (float)texture_coords.y + 1.0f)
+        ));
+        lines.append(sf::Vertex(
+                sf::Vector2f(SCREEN_WIDTH, y),
+                color,
+                sf::Vector2f((float)WALL_TEXTURE_SIZE, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
+        ));
+        /*
+        Eigen::Vector2f floor_left = player.dir - player.screen;
+        Eigen::Vector2f floor_right = player.dir + player.screen;
+
+       int z_dir = y - SCREEN_HEIGHT / 2;
+
+       float camera_z_pos = 0.5f * SCREEN_HEIGHT;
+
+       float row_distance = camera_z_pos / z_dir;
+
+       Eigen::Vector2f floor_step = row_distance * (floor_right - floor_left) / SCREEN_WIDTH;
+
+       Eigen::Vector2f floor = player.pos + row_distance * floor_left;
+
+       for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
+           int cell_x = (int) floor.x();
+           int cell_y = (int) floor.y();
+
+           int tx = (int)(WALL_TEXTURE_SIZE * (floor.x() - cell_x)) & (WALL_TEXTURE_SIZE - 1);
+           int ty = (int)(WALL_TEXTURE_SIZE * (floor.y() - cell_y)) & (WALL_TEXTURE_SIZE - 1);
+
+           floor += floor_step;
+
+           int floorTexture = 3;
+           int ceilingTexture = 6;
+           sf::Color color;
+
+           lines.append(sf::Vertex(
+                   sf::Vector2f(0, y),
+                   color,
+                   sf::Vector2f((float)texture_coords.x, (float)texture_coords.y + 1.0f)
+           ));
+           lines.append(sf::Vertex(
+                   sf::Vector2f(SCREEN_WIDTH, y),
+                   color,
+                   sf::Vector2f((float)texture_coords.x, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
+           ));
+       }
+         */
+
+
+    }
+
+    // WALL CASTING
     for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
         double screen_pos = 2 * (x / double(SCREEN_WIDTH)) - 1; // goes from -1 to 1
         Eigen::Vector2f ray = player.dir + (player.screen * screen_pos);
@@ -56,7 +118,7 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
         int map_x = int(player.pos.x());
         int map_y = int(player.pos.y());
 
-        // Distance to the next and y along the ray
+        // Distance to the next x and y along the ray
         double dist_next_x = ray.x() == 0 ? 1e30 : abs(1 / ray.x());
         double dist_next_y = ray.y() == 0 ? 1e30 : abs(1 / ray.y());
 
@@ -111,16 +173,8 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
 
         // Calculating line height
         int line_height = SCREEN_HEIGHT / wall_distance;
-        int draw_start = SCREEN_HEIGHT/2 -line_height/2;
-        /*
-        if (draw_start < 0)
-            draw_start = 0;
-            */
+        int draw_start = SCREEN_HEIGHT/2 - line_height/2;
         int draw_end = SCREEN_HEIGHT/2 + line_height/2;
-        /*
-        if (draw_end >= SCREEN_HEIGHT)
-            draw_end = SCREEN_HEIGHT - 1;
-            */
 
         // Texture stuff
         int tex_num = map[map_x][map_y] - 1; // so we can use 0 texture
@@ -128,11 +182,6 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
                 tex_num * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
                 tex_num * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
         );
-
-        /*
-        float wall_x = (pos + dir*euclidian_distance).x();
-        wall_x -= floor(wall_x);
-        */
 
         // calculate where the wall was hit //todo: try to understand this???
         float wall_x;
