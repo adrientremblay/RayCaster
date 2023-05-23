@@ -46,37 +46,38 @@ struct Player {
     Eigen::Vector2f screen = Eigen::Vector2f(0.0f, 0.66f);
 } player;
 
-void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates renderStates) {
+void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates renderStates, sf::VertexArray& floor_lines, sf::RenderStates floor_render_states) {
     lines.resize(0);
+    floor_lines.resize(0);
 
     // FLOOR CASTING
     float near = 0.01f;
     float far = 2.0f;
 
-    float floor_tex_sf = 10.0f;
+    float floor_tex_sf = 30.0f;
 
     Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
     Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
     Eigen::Vector2f frustum_bottom_left = player.pos + ((player.dir - player.screen) * near);
     Eigen::Vector2f frustum_bottom_right = player.pos + ((player.dir + player.screen) * near);
 
-    for (int y = SCREEN_HEIGHT/2 ; y < SCREEN_HEIGHT ; y++) {
-        float normalized_y = float(y) / ((float) SCREEN_HEIGHT); // between 0 and 1
+    for (int y = 0 ; y < SCREEN_HEIGHT / 2 ; y++) {
+        float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2); // between 0 and 1
 
-        Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) * normalized_y + frustum_bottom_left;
-        Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) * normalized_y + frustum_bottom_right;
+        Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) * (1.0f - normalized_y) + frustum_bottom_left;
+        Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) * (1.0f - normalized_y) + frustum_bottom_right;
 
         sf::Color color = sf::Color::White;
 
-        lines.append(sf::Vertex(
-                sf::Vector2f(0, y),
+        floor_lines.append(sf::Vertex(
+                sf::Vector2f(0, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f(scanline_left.x() * floor_tex_sf, scanline_left.y() * floor_tex_sf)
+                sf::Vector2f(scanline_left.x() * floor_tex_sf, (scanline_left.y() + SCREEN_HEIGHT) * floor_tex_sf)
         ));
-        lines.append(sf::Vertex(
-                sf::Vector2f(SCREEN_WIDTH, y),
+        floor_lines.append(sf::Vertex(
+                sf::Vector2f(SCREEN_WIDTH, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f(scanline_right.x() * floor_tex_sf, scanline_right.y() * floor_tex_sf)
+                sf::Vector2f(scanline_right.x() * floor_tex_sf, (scanline_right.y() + SCREEN_HEIGHT) * floor_tex_sf)
         ));
     }
 
@@ -192,6 +193,7 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
         ));
     }
 
+    window.draw(floor_lines, floor_render_states);
     window.draw(lines, renderStates);
 }
 
@@ -205,7 +207,7 @@ int main() {
     window.setFramerateLimit(60);
 
     // Render lines
-    sf::VertexArray lines(sf::Lines, SCREEN_WIDTH);
+    sf::VertexArray wall_lines(sf::Lines, SCREEN_WIDTH);
 
     // Texture for walls
     sf::Texture walls_texture;
@@ -213,7 +215,10 @@ int main() {
         fprintf(stderr, "Cannot open texture!\n");
         return EXIT_FAILURE;
     }
-    sf::RenderStates renderStates(&walls_texture);
+    sf::RenderStates wall_render_states(&walls_texture);
+
+    // Render lines for floor
+    sf::VertexArray floor_lines(sf::Lines, SCREEN_HEIGHT);
 
     // Texture for floor
     sf::Texture floor_texture;
@@ -221,6 +226,7 @@ int main() {
         fprintf(stderr, "Cannot open texture!\n");
         return EXIT_FAILURE;
     }
+    sf::RenderStates floor_render_states(&floor_texture);
 
     sf::Vector2i center_screen(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
     sf::Mouse::setPosition(center_screen, window);
@@ -274,7 +280,7 @@ int main() {
         window.clear(sf::Color::Black);
 
         // Casting rays
-        rayCast(window, lines, renderStates);
+        rayCast(window, wall_lines, wall_render_states, floor_lines, floor_render_states);
 
         window.display();
     }
