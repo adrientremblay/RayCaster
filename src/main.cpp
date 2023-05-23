@@ -50,21 +50,28 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     lines.resize(0);
 
     // FLOOR CASTING
-    for (int y = 0 ; y < SCREEN_HEIGHT ; y++) {
+    for (int y = 0 ; y < SCREEN_HEIGHT / 2 ; y++) {
         sf::Color color = sf::Color::White;
+
+        color.r = color.r * (y / SCREEN_HEIGHT + 1);
+        color.g = color.g * (y / SCREEN_HEIGHT + 1);
+        color.b = color.b * (y / SCREEN_HEIGHT + 1);
+
         sf::Vector2i texture_coords(
                 0 * (int)WALL_TEXTURE_SIZE % (int)IMAGE_TEXTURE_SIZE,
                 0 * (int)WALL_TEXTURE_SIZE / (int)IMAGE_TEXTURE_SIZE * (int)WALL_TEXTURE_SIZE
         );
+
+
         lines.append(sf::Vertex(
                 sf::Vector2f(0, y),
                 color,
-                sf::Vector2f((float)0, (float)texture_coords.y + 1.0f)
+                sf::Vector2f(WALL_TEXTURE_SIZE, (y / float(SCREEN_HEIGHT) * WALL_TEXTURE_SIZE))
         ));
         lines.append(sf::Vertex(
                 sf::Vector2f(SCREEN_WIDTH, y),
                 color,
-                sf::Vector2f((float)WALL_TEXTURE_SIZE, (float)(texture_coords.y + (float)WALL_TEXTURE_SIZE - 1.0f))
+                sf::Vector2f(2*WALL_TEXTURE_SIZE, (y / float(SCREEN_HEIGHT) * WALL_TEXTURE_SIZE))
         ));
         /*
         Eigen::Vector2f floor_left = player.dir - player.screen;
