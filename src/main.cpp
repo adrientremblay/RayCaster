@@ -51,15 +51,17 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
 
     // FLOOR CASTING
     float near = 0.01f;
-    float far = 0.1f;
+    float far = 2.0f;
+
+    float floor_tex_sf = 10.0f;
 
     Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
     Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
     Eigen::Vector2f frustum_bottom_left = player.pos + ((player.dir - player.screen) * near);
     Eigen::Vector2f frustum_bottom_right = player.pos + ((player.dir + player.screen) * near);
 
-    for (int y = 0 ; y < SCREEN_HEIGHT / 2 ; y++) {
-        float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2.0f); // between 0 and 1
+    for (int y = SCREEN_HEIGHT/2 ; y < SCREEN_HEIGHT ; y++) {
+        float normalized_y = float(y) / ((float) SCREEN_HEIGHT); // between 0 and 1
 
         Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) * normalized_y + frustum_bottom_left;
         Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) * normalized_y + frustum_bottom_right;
@@ -69,12 +71,12 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
         lines.append(sf::Vertex(
                 sf::Vector2f(0, y),
                 color,
-                sf::Vector2f(scanline_left.x(), scanline_left.y())
+                sf::Vector2f(scanline_left.x() * floor_tex_sf, scanline_left.y() * floor_tex_sf)
         ));
         lines.append(sf::Vertex(
                 sf::Vector2f(SCREEN_WIDTH, y),
                 color,
-                sf::Vector2f(scanline_right.x(), scanline_right.y())
+                sf::Vector2f(scanline_right.x() * floor_tex_sf, scanline_right.y() * floor_tex_sf)
         ));
     }
 
