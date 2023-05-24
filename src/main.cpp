@@ -52,9 +52,9 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
 
     // FLOOR CASTING
     float near = 0.01f;
-    float far = 2.0f;
+    float far = 1.0f;
 
-    float floor_tex_sf = 30.0f;
+    float floor_tex_sf = 10.f;
 
     Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
     Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
@@ -62,22 +62,24 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     Eigen::Vector2f frustum_bottom_right = player.pos + ((player.dir + player.screen) * near);
 
     for (int y = 0 ; y < SCREEN_HEIGHT / 2 ; y++) {
-        float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2); // between 0 and 1
+        float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2.0f); // between 0 and 1
 
-        Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) * (1.0f - normalized_y) + frustum_bottom_left;
-        Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) * (1.0f - normalized_y) + frustum_bottom_right;
+        Eigen::Vector2f swag = (frustum_top_left - frustum_bottom_left);
+        Eigen::Vector2f swag2 = (frustum_top_left - frustum_bottom_left) / normalized_y;
+        Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) / (normalized_y) + frustum_bottom_left ;
+        Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) / (normalized_y) + frustum_bottom_right ;
 
         sf::Color color = sf::Color::White;
 
         floor_lines.append(sf::Vertex(
                 sf::Vector2f(0, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f(scanline_left.x() * floor_tex_sf, (scanline_left.y() + SCREEN_HEIGHT) * floor_tex_sf)
+                sf::Vector2f(scanline_left.x() * floor_tex_sf, scanline_left.y() * floor_tex_sf)
         ));
         floor_lines.append(sf::Vertex(
                 sf::Vector2f(SCREEN_WIDTH, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f(scanline_right.x() * floor_tex_sf, (scanline_right.y() + SCREEN_HEIGHT) * floor_tex_sf)
+                sf::Vector2f(scanline_right.x() * floor_tex_sf, scanline_right.y() * floor_tex_sf)
         ));
     }
 
