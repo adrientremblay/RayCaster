@@ -54,7 +54,7 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     float near = 0.01f;
     float far = 1.0f;
 
-    float floor_tex_sf = 10.f;
+    float floor_tex_sf = 50.f;
 
     Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
     Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
@@ -224,7 +224,7 @@ int main() {
 
     // Texture for floor
     sf::Texture floor_texture;
-    if (!floor_texture.loadFromFile("../res/floor.jpg")) {
+    if (!floor_texture.loadFromFile("../res/floor.png")) {
         fprintf(stderr, "Cannot open texture!\n");
         return EXIT_FAILURE;
     }
