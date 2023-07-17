@@ -10,7 +10,15 @@ ray-casting graphics. The game will be nothing revolutionary gameplay-wise but w
 differentiate with its ambience and story.
 
 The horror of the game is influenced by my own experience of dreaming of my own dead father
-as if he was alive, then waking up and realizing he is dead again.
+as if he was alive, then waking up and realizing he is dead again. The central theme of the game
+is this horror of reliving loss and fantasizing about things that are lost.
+
+The story of the game takes the protagonist through different things that he longs for in his life
+that he has lost. In confronting each of these different things, the player has chooses how to
+cope. Either to A) wake up, B) believe, C) destroys.
+
+Based on the majority of their actions there are three endings: A) wakes up, B) sleeps forever (dies), C) wakes
+up but has forgotten everything.
 
 ### Target Audience
 The target audience are people who are into horror games such as *Amnesia the Dark Descent*
@@ -19,15 +27,28 @@ fiction games like *Life is Strange* and *The Walking Dead*. Additionally anothe
 to emulate is the walking-sim story game 'Dear Esther'.
 
 ## World
+
+### Setting
 The entire game shall take place in a dream. But I want to avoid the whole "He woke up and it
 was all a dream!" trope, so it should be made clear early to the player that they are in a
 dream.
 
-The physical word of the game is the real world of a nonspecific year (modern era). 
+The physical word of the game is the real world of a nonspecific year (modern era). The only
+physical area the player explores is the room of the protagonist. However, the majority of the
+levels will be dream sequences that will be abstract representations of real-world areas.
 
 ### Characters
 
-### Setting
+#### Protagonist
+
+#### Father
+
+#### Mother
+
+#### Brother
+
+#### Lover
+
 
 ### Story
 
