@@ -43,6 +43,8 @@ levels will be dream sequences that will be abstract representations of real-wor
 
 #### Father
 
+He died
+
 #### Mother
 
 #### Brother
@@ -55,6 +57,12 @@ levels will be dream sequences that will be abstract representations of real-wor
 ## Gameplay
 
 ### Levels
+
+#### Level 1
+
+#### Level 2
+
+#### Level 3
 
 ## Technical Details
 
