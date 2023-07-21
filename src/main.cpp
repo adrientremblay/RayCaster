@@ -1,6 +1,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <Eigen/Dense>
+#include <iostream>
 
 #define MAP_WIDTH 24
 #define MAP_HEIGHT 24
@@ -54,18 +55,17 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     float near = 0.01f;
     float far = 1.0f;
 
-    float floor_tex_sf = 50.f;
+    float floor_tex_sf = 128.f;
 
     Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
     Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
     Eigen::Vector2f frustum_bottom_left = player.pos + ((player.dir - player.screen) * near);
     Eigen::Vector2f frustum_bottom_right = player.pos + ((player.dir + player.screen) * near);
 
-    for (int y = 0 ; y < SCREEN_HEIGHT / 2 ; y++) {
+    for (int y = 1 ; y < SCREEN_HEIGHT / 2 ; y++) {
         float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2.0f); // between 0 and 1
 
-        Eigen::Vector2f swag = (frustum_top_left - frustum_bottom_left);
-        Eigen::Vector2f swag2 = (frustum_top_left - frustum_bottom_left) / normalized_y;
+        // TODO: why a divide (/)?
         Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) / (normalized_y) + frustum_bottom_left ;
         Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) / (normalized_y) + frustum_bottom_right ;
 
@@ -74,14 +74,21 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
         floor_lines.append(sf::Vertex(
                 sf::Vector2f(0, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f(scanline_left.x() * floor_tex_sf, scanline_left.y() * floor_tex_sf)
+                sf::Vector2f((abs(scanline_left.x()) - (scanline_left.x()/4)) * floor_tex_sf, (abs(scanline_left.y()) - (scanline_left.y()/4)) * floor_tex_sf)
         ));
         floor_lines.append(sf::Vertex(
                 sf::Vector2f(SCREEN_WIDTH, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f(scanline_right.x() * floor_tex_sf, scanline_right.y() * floor_tex_sf)
+                sf::Vector2f((abs(scanline_right.x()) - (scanline_right.x()/4)) * floor_tex_sf, (abs(scanline_right.y()) - (scanline_right.y()/4)) * floor_tex_sf)
         ));
     }
+
+    std::cout << "player pos: " << player.pos.x() << ' ' << player.pos.y() << std::endl;
+    /*
+    std::cout << "frustum top left: " << frustum_top_left << std::endl;
+    std::cout << "frustum bottom left: " << frustum_bottom_left << std::endl;
+    */
+    //std::cout << "scanline left: " << scan << std::endl;
 
     // WALL CASTING
     for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
@@ -195,7 +202,7 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
         ));
     }
 
-    window.draw(floor_lines, floor_render_states);
+    window.draw(floor_lines, renderStates);
     window.draw(lines, renderStates);
 }
 
