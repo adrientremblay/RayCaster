@@ -10,6 +10,7 @@
 #define IMAGE_TEXTURE_SIZE 512
 #define WALL_TEXTURE_SIZE 128
 
+// also used for the floor map?
 int map[MAP_WIDTH][MAP_HEIGHT] =
 {
     {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,7,7,7,7,7,7,7,7},
@@ -52,43 +53,78 @@ void rayCast(sf::RenderWindow& window, sf::VertexArray lines, sf::RenderStates r
     floor_lines.resize(0);
 
     // FLOOR CASTING
-    float near = 0.01f;
-    float far = 1.0f;
+    float posZ = 0.5 * SCREEN_HEIGHT; // doesn't need to be recalculated
+    Eigen::Vector2f frustumDirLeft = (player.dir - player.screen).normalized();
+    Eigen::Vector2f frustumDirRight = (player.dir + player.screen).normalized();
 
-    float floor_tex_sf = 128.f;
+    int floor_lines_v_count = 0;
 
-    Eigen::Vector2f frustum_top_left = player.pos + ((player.dir - player.screen) * far);
-    Eigen::Vector2f frustum_top_right = player.pos + ((player.dir + player.screen) * far);
-    Eigen::Vector2f frustum_bottom_left = player.pos + ((player.dir - player.screen) * near);
-    Eigen::Vector2f frustum_bottom_right = player.pos + ((player.dir + player.screen) * near);
+    for (int y = 0 ; y < SCREEN_HEIGHT / 4 ; y++) {
+        int p = SCREEN_HEIGHT / 2 - y; // should this be the other way around?
 
-    for (int y = 1 ; y < SCREEN_HEIGHT / 2 ; y++) {
-        float normalized_y = float(y) / ((float) SCREEN_HEIGHT / 2.0f); // between 0 and 1
+        float horizontalDistance = posZ / p;
 
-        // TODO: why a divide (/)?
-        Eigen::Vector2f scanline_left = (frustum_top_left - frustum_bottom_left) / (normalized_y) + frustum_bottom_left ;
-        Eigen::Vector2f scanline_right = (frustum_top_right - frustum_bottom_right) / (normalized_y) + frustum_bottom_right ;
+        Eigen::Vector2f floorPos(player.pos + (horizontalDistance * frustumDirLeft));
+
+        Eigen::Vector2f floorStep = horizontalDistance * (frustumDirRight - frustumDirLeft) / SCREEN_WIDTH;
 
         sf::Color color = sf::Color::White;
 
+        // TODO: Does it even make sense to use lines?
+        // TODO: Can I come up with a more efficient algo?
+        Eigen::Vector2f oldFloorCell((int) floorPos.x(), (int) floorPos.y());
+        Eigen::Vector2f oldTexPos = WALL_TEXTURE_SIZE * (floorPos - oldFloorCell);
+
+        // starting vertex
         floor_lines.append(sf::Vertex(
                 sf::Vector2f(0, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f((abs(scanline_left.x()) - (scanline_left.x()/4)) * floor_tex_sf, (abs(scanline_left.y()) - (scanline_left.y()/4)) * floor_tex_sf)
+                sf::Vector2f(oldTexPos.x(), oldTexPos.y() + WALL_TEXTURE_SIZE) // the first texture will be used
         ));
+
+        Eigen::Vector2f newFloorCell;
+        Eigen::Vector2f newTexPos;
+
+        for (int x = 1 ; x < SCREEN_WIDTH ; x++) {
+            newFloorCell = Eigen::Vector2f ((int) floorPos.x(), (int) floorPos.y());
+            newTexPos = WALL_TEXTURE_SIZE * (floorPos - newFloorCell);
+
+            // do stuff
+            if (x == 0 || x == SCREEN_WIDTH - 1 || oldFloorCell != newFloorCell) {
+                floor_lines.append(sf::Vertex(
+                        sf::Vector2f(x-1, y + SCREEN_HEIGHT/2),
+                        color,
+                        sf::Vector2f(oldTexPos.x(), oldTexPos.y() + WALL_TEXTURE_SIZE) // the first texture will be used
+                ));
+
+                floor_lines.append(sf::Vertex(
+                        sf::Vector2f(x, y + SCREEN_HEIGHT/2),
+                        color,
+                        sf::Vector2f(newTexPos.x(), newTexPos.y() + WALL_TEXTURE_SIZE) // the first texture will be used
+                ));
+                floor_lines_v_count++;
+            }
+
+            oldFloorCell = newFloorCell;
+            oldTexPos = newTexPos;
+            floorPos += floorStep;
+        }
+
+        // closing vertex
         floor_lines.append(sf::Vertex(
-                sf::Vector2f(SCREEN_WIDTH, y + SCREEN_HEIGHT/2),
+                sf::Vector2f(SCREEN_WIDTH - 1, y + SCREEN_HEIGHT/2),
                 color,
-                sf::Vector2f((abs(scanline_right.x()) - (scanline_right.x()/4)) * floor_tex_sf, (abs(scanline_right.y()) - (scanline_right.y()/4)) * floor_tex_sf)
+                sf::Vector2f(newTexPos.x(), newTexPos.y() + WALL_TEXTURE_SIZE) // the first texture will be used
         ));
     }
 
-    std::cout << "player pos: " << player.pos.x() << ' ' << player.pos.y() << std::endl;
+    //std::cout << " pos: " << player.pos.x() << ' ' << player.pos.y() << std::endl;
     /*
     std::cout << "frustum top left: " << frustum_top_left << std::endl;
     std::cout << "frustum bottom left: " << frustum_bottom_left << std::endl;
     */
     //std::cout << "scanline left: " << scan << std::endl;
+    std::cout << "floor lines: " << floor_lines_v_count << std::endl;
 
     // WALL CASTING
     for (int x = 0 ; x < SCREEN_WIDTH ; x++) {
