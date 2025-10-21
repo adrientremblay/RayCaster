@@ -43,11 +43,14 @@ int main()
 
     double time = 0;
     double old_time = 0;
+
+    std::cout << "main\n";
+    /*
     auto window = sf::RenderWindow(sf::VideoMode({1920u, 1080u}), "CMake SFML Project");
     window.setFramerateLimit(144);
-
     while (window.isOpen())
     {
+        std::cout << "open\n";
         while (const std::optional event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
@@ -59,4 +62,5 @@ int main()
         window.clear(sf::Color::Black);
         window.display();
     }
+    */
 }
