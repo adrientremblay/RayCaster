@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <SFML/Graphics.hpp>
 
 #define MAP_WIDTH 24
@@ -56,8 +57,24 @@ int main()
 
             double ray_direction_x = direction_x + plane_x * camera_x;
             double ray_direction_y = direction_y + plane_y * camera_x;
+
+            // position in the map
+            int map_x = int(position_x);
+            int map_y = int(position_y);
+
+            // distance from one x/y side to another
+            double delta_dist_x = std::abs(1/ray_direction_x);
+            double delta_dist_y = std::abs(1/ray_direction_y);
+
+            // distance from current position to next
+            double side_dist_x, side_dist_y;
+
+            // move in the x direction or the y direction
+            int step_x, step_y;
+
+            int hit = 0;
+            int side; // Y or X wall
           }
-          double camera_x = 2 * 
 
           if (event->is<sf::Event::Closed>())
               window.close();
