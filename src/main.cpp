@@ -43,17 +43,24 @@ int main()
 
     double time = 0;
     double old_time = 0;
-    auto window = sf::RenderWindow(sf::VideoMode({1920u, 1080u}), "CMake SFML Project");
-    window.setFramerateLimit(144);
 
-    while (window.isOpen())
-    {
-        while (const std::optional event = window.pollEvent())
-        {
-            if (event->is<sf::Event::Closed>())
-            {
-                window.close();
-            }
+    auto window = sf::RenderWindow(sf::VideoMode({SCREEN_WIDTH, SCREEN_HEIGHT}), "CMake SFML Project");
+    window.setFramerateLimit(60);
+
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+          for (int screen_x = 0 ; screen_x < SCREEN_WIDTH ; screen_x++) {
+            // "camera_x is the x-coordinate on the camera plane that the current x-coordinate of the screen represents"
+            // far left is -1.0, middle is 0.0, and far right is 1.0
+            double camera_x = 2 * screen_x / double(SCREEN_WIDTH) - 1;
+
+            double ray_direction_x = direction_x + plane_x * camera_x;
+            double ray_direction_y = direction_y + plane_y * camera_x;
+          }
+          double camera_x = 2 * 
+
+          if (event->is<sf::Event::Closed>())
+              window.close();
         }
 
         window.clear(sf::Color::Black);
